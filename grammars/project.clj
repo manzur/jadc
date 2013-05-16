@@ -6,5 +6,5 @@
   :dependencies [[org.clojure/clojure "1.5.1"]]
   :java-source-paths ["src"]
   :javac-options ["-target" "1.7"]
-  :main "grammars.core"
+  :main "grammars.bool-exp"
 )
