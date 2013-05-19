@@ -4,6 +4,10 @@ public class Main {
 	public static void main(String[] args) {
 		System.out.println("main");
 
+		test1();
+	}
+
+	private static void test1() {
 		SkipList<Integer, String> map = new SkipList<Integer, String>();
 		// HashMap<Integer, String> map = new HashMap<Integer, String>();
 		map.put(1, "a");
@@ -19,35 +23,14 @@ public class Main {
 		map.put(11, "k");
 		map.put(12, null);
 
-		System.out.println(map.toDebugString());
-
-		System.out.println("values");
-		for (String v : map.values()) {
-			System.out.println(v);
-		}
-
-		System.out.println("map size " + map.size());
-		for (int i = 12; i > 1; i--) {
-			System.out.println("map remove " + i + " " + map.remove(i));
-		}
-
-		System.out.println(map.toDebugString());
-
-		System.out.println("map remove " + 1 + " " + map.remove(1));
-		System.out.println("map get " + 1 + " " + map.get(1));
-
-		System.out.println("map get " + 1 + " " + map.get(1));
-
 		for (int i = 12; i > 0; i--) {
-			System.out.println("map get " + i + " " + map.get(i));
+			map.remove(i);
 		}
+		System.out.println(map.toString());
+		map.put(12, "a");
+		System.out.println(map.toString());
 
-		System.out.println("map size " + map.size());
-
-		map.remove(22);
-		System.out.println("values ");
-		for (String v : map.values()) {
-			System.out.println(v);
-		}
+		System.out.println("=" + map.containsValue("a"));
 	}
+
 }

@@ -1,5 +1,6 @@
 package code.skiplist;
 
+import java.text.MessageFormat;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,7 +17,7 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 	private int size;
 	private int maxLevel;
 
-	private ArrayList<Node<K, V>> headers;
+	private Node<K, V> header;
 
 	static class Node<K, V> implements Map.Entry<K, V> {
 		int level;
@@ -32,12 +33,12 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 			this.level = level;
 			this.key = key;
 			this.value = value;
-			this.forward = new ArrayList<Node<K, V>>(level);
-
 			clear();
 		}
 
 		private void clear() {
+			forward = new ArrayList<Node<K, V>>(level);
+
 			for (int i = 0; i <= level; i++) {
 				forward.add(null);
 			}
@@ -55,7 +56,7 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 
 		@Override
 		public V setValue(V value) {
-			V result = value;
+			V result = this.value;
 			this.value = value;
 			return result;
 		}
@@ -64,22 +65,16 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 		public String toString() {
 			return "level = " + level + " key = " + key + " value = " + value;
 		}
-
 	}
 
 	public SkipList() {
 		maxLevel = 0;
-		headers = new ArrayList();
-
 		clear();
 	}
 
 	@Override
 	public void clear() {
-		for (int i = 0; i <= maxLevel; i++) {
-			Node<K, V> node = new Node<K, V>(i);
-			headers.add(node);
-		}
+		header = new Node<K, V>(maxLevel);
 	}
 
 	@Override
@@ -98,7 +93,7 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 	public boolean containsValue(Object value) {
 		boolean result = false;
 
-		Node<K, V> node = getFirstHeader().forward.get(0);
+		Node<K, V> node = header.forward.get(0);
 		while (node != null && !result) {
 			V nodeValue = node.getValue();
 
@@ -116,8 +111,9 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 
 	@Override
 	public Set<Map.Entry<K, V>> entrySet() {
+
 		Set<Map.Entry<K, V>> result = new HashSet<Map.Entry<K, V>>();
-		Node<K, V> node = getFirstHeader().forward.get(0);
+		Node<K, V> node = header.forward.get(0);
 
 		while (node != null) {
 			result.add(node);
@@ -129,14 +125,14 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 
 	@Override
 	public boolean isEmpty() {
-		return headers.size() > 0 && headers.get(0).forward != null;
+		return header.forward.get(0) != null;
 	}
 
 	@Override
 	public Set<K> keySet() {
 		final Set<K> result = new HashSet<K>();
 
-		Node<K, V> node = getFirstHeader().forward.get(0);
+		Node<K, V> node = header.forward.get(0);
 		while (node != null) {
 			result.add(node.getKey());
 			node = node.forward.get(0);
@@ -147,12 +143,12 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 
 	@Override
 	public V put(K key, V value) {
-		Node<K, V>[] update = new Node[headers.size()];
+		Node<K, V>[] update = new Node[header.forward.size()];
 
-		Node<K, V> node = getLastHeader();
+		Node<K, V> node = header;
 		for (int i = maxLevel; i >= 0; i--) {
 			while (node.forward.get(i) != null
-					&& key.compareTo(node.forward.get(i).getKey()) != -1) {
+					&& key.compareTo(node.forward.get(i).getKey()) == 1) {
 
 				node = node.forward.get(i);
 			}
@@ -162,8 +158,9 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 
 		V result = null;
 
-		if (key.equals(node.getKey())) {
-			result = node.setValue(value);
+		if (node.forward.get(0) != null
+				&& key.equals(node.forward.get(0).getKey())) {
+			result = node.forward.get(0).setValue(value);
 
 		} else {
 			int level = nodeLevel();
@@ -176,19 +173,11 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 			}
 
 			if (level > maxLevel) {
-				Node<K, V> headerNode = new Node<K, V>(level);
-				headerNode.forward.set(level, newNode);
-
-				Node<K, V> previousNode = headers.get(maxLevel);
-				for (int i = 0; i <= maxLevel; i++) {
-					headerNode.forward.set(i, previousNode.forward.get(i));
-				}
-
-				headers.add(headerNode);
+				header.forward.add(newNode);
 
 				maxLevel = level;
 
-				assert maxLevel == headers.size() - 1;
+				assert maxLevel == header.forward.size() - 1;
 			}
 
 			size++;
@@ -209,9 +198,9 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 		assert k instanceof Comparable;
 		K key = (K) k;
 
-		Node<K, V>[] update = new Node[headers.size()];
+		Node<K, V>[] update = new Node[header.forward.size()];
 
-		Node<K, V> node = getLastHeader();
+		Node<K, V> node = header;
 		for (int i = maxLevel; i >= 0; i--) {
 			while (node.forward.get(i) != null
 					&& key.compareTo(node.forward.get(i).getKey()) == 1) {
@@ -223,10 +212,9 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 		}
 
 		final V result;
-		if (node.forward.get(0) != null
-				&& key.equals(node.forward.get(0).getKey())) {
+		node = node.forward.get(0);
+		if (node != null && key.equals(node.getKey())) {
 
-			node = node.forward.get(0);
 			result = node.getValue();
 
 			int level = node.level;
@@ -235,19 +223,17 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 				level--;
 			}
 
-			if (node.level >= 0 && node.level == maxLevel
-					&& headers.get(maxLevel).forward.get(maxLevel) == null) {
-
-				headers.remove(maxLevel);
+			if (node.level == maxLevel && header.forward.get(maxLevel) == null) {
+				header.forward.remove(maxLevel);
 				maxLevel--;
-
 			}
+
 			if (maxLevel == -1) {
 				maxLevel = 0;
 				clear();
 			}
 
-			assert maxLevel == headers.size() - 1;
+			assert maxLevel == header.forward.size() - 1;
 
 			size--;
 		} else {
@@ -269,7 +255,7 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 			@Override
 			public Iterator<V> iterator() {
 				return new Iterator<V>() {
-					Node<K, V> currentNode = getFirstHeader();
+					Node<K, V> currentNode = header;
 
 					@Override
 					public boolean hasNext() {
@@ -312,11 +298,14 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 
 		Set<Entry<K, V>> entries = entrySet();
 		for (Entry<K, V> entry : entries) {
-			builder.append(entry.getKey() + " " + entry.getValue() + ", ");
+			String s = MessageFormat.format("{0} {1}, ", entry.getKey(),
+					entry.getValue());
+			builder.append(s);
 		}
 
-		if (builder.length() > 2 && builder.charAt(builder.length() - 2) == ',') {
-			builder.delete(builder.length() - 2, builder.length());
+		int lastIndex;
+		if ((lastIndex = builder.lastIndexOf(",")) != -1) {
+			builder.delete(lastIndex, lastIndex + 1);
 		}
 
 		builder.append(" }");
@@ -331,19 +320,20 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 		for (int i = 0; i <= maxLevel; i++) {
 
 			builder.append(i + " : " + "[");
-			Node<K, V> entry = headers.get(i).forward.get(i);
+			Node<K, V> entry = header.forward.get(i);
 
 			while (entry != null) {
 				if (entry.level == i) {
-					builder.append(entry.getKey() + " " + entry.getValue()
-							+ ", ");
+					String s = MessageFormat.format("{0} {1}, ",
+							entry.getKey(), entry.getValue());
+					builder.append(s);
 				}
 				entry = entry.forward.get(i);
 			}
 
-			if (builder.length() > 2
-					&& builder.charAt(builder.length() - 2) == ',') {
-				builder.delete(builder.length() - 2, builder.length());
+			int lastIndex;
+			if ((lastIndex = builder.lastIndexOf(",")) != -1) {
+				builder.delete(lastIndex, lastIndex + 1);
 			}
 
 			builder.append("]");
@@ -355,25 +345,11 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 
 	}
 
-	private Node<K, V> getLastHeader() {
-		assert headers.size() > 0;
-
-		Node<K, V> result = headers.get(headers.size() - 1);
-		return result;
-	}
-
-	private Node<K, V> getFirstHeader() {
-		assert headers.size() > 0;
-
-		Node<K, V> result = headers.get(0);
-		return result;
-	}
-
-	Optional<V> find(Object k) {
+	private Optional<V> find(Object k) {
 		assert k instanceof Comparable;
 
 		Comparable<K> key = (Comparable<K>) k;
-		Node<K, V> currentNode = getLastHeader();
+		Node<K, V> currentNode = header;
 
 		for (int i = maxLevel; i >= 0; i--) {
 			while (currentNode.forward.get(i) != null
@@ -394,7 +370,7 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 		return result;
 	}
 
-	int nodeLevel() {
+	private int nodeLevel() {
 		int result = 0;
 
 		Random random = new Random();
