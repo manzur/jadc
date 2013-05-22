@@ -345,6 +345,85 @@ public class SkipList<K extends Comparable<K>, V> implements Map<K, V> {
 
 	}
 
+	/**
+	 * finger search operation
+	 * 
+	 * @return
+	 */
+	public Searcher seacher() {
+		return new Searcher<K, V>() {
+
+			Node<K, V>[] fingers = new Node[header.forward.size()];
+			{
+				for (int i = 0; i < fingers.length; i++) {
+					fingers[i] = header;
+				}
+			}
+
+			@Override
+			public V search(K key) {
+
+				// no elements or we hit the bound on the previous searches
+				if (size == 0 || fingers[0].forward.get(0) == null) {
+					return null;
+				}
+
+				int level = -1;
+				Node<K, V> cursor = header;
+
+				if (key.compareTo(fingers[0].forward.get(0).getKey()) < 0) {
+
+					for (int i = 0; i < fingers.length; i++) {
+
+						if (fingers[i].forward.get(i) == null
+								|| key.compareTo(fingers[i].forward.get(i)
+										.getKey()) >= 0) {
+							break;
+						}
+
+						level = i;
+						cursor = fingers[i];
+					}
+
+				} else {
+
+					for (int i = 0; i < fingers.length; i++) {
+
+						if (fingers[i].forward.get(i) != null
+								&& key.compareTo(fingers[i].forward.get(i)
+										.getKey()) < 0) {
+
+							level = i;
+							cursor = fingers[i];
+							break;
+						}
+					}
+
+					if (level == -1) {
+						level = fingers.length - 1;
+						cursor = header;
+					}
+				}
+
+				for (int i = level; i >= 0; i--) {
+					while (cursor.forward.get(i) != null
+							&& key.compareTo(cursor.forward.get(i).getKey()) > 0) {
+						cursor = cursor.forward.get(i);
+					}
+					fingers[i] = cursor;
+				}
+
+				if (cursor.forward.get(0) != null
+						&& key.compareTo(cursor.forward.get(0).getKey()) == 0) {
+					return cursor.forward.get(0).getValue();
+				}
+
+				return null;
+			}
+
+		};
+	}
+
 	private Optional<V> find(Object k) {
 		assert k instanceof Comparable;
 

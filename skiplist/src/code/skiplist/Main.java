@@ -23,14 +23,28 @@ public class Main {
 		map.put(11, "k");
 		map.put(12, null);
 
-		for (int i = 12; i > 0; i--) {
-			map.remove(i);
-		}
-		System.out.println(map.toString());
-		map.put(12, "a");
-		System.out.println(map.toString());
+		Searcher searcher = map.seacher();
+		//
+		// System.out.println("searching for " + 1 + " and result is "
+		// + searcher.search(1));
 
-		System.out.println("=" + map.containsValue("a"));
+		System.out.println("searching for " + 2 + " and result is "
+				+ searcher.search(2));
+
+		System.out.println("searching for " + 1 + " and result is "
+				+ searcher.search(1));
+
+		System.out.println("searching for " + 3 + " and result is "
+				+ searcher.search(3));
+
+		System.out.println("searching for " + 6 + " and result is "
+				+ searcher.search(6));
+
+		System.out.println("searching for " + 8 + " and result is "
+				+ searcher.search(8));
+
+		System.out.println("searching for " + 12 + " and result is "
+				+ searcher.search(12));
 	}
 
 }
