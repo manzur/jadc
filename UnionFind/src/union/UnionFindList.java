@@ -2,16 +2,18 @@ package union;
 import java.util.Collections;
 import java.util.LinkedList;
 
-public class UnionFindList<T> {
+public class UnionFindList<T> implements IUnionFind<T> {
 	
 	private LinkedList<LinkedList<T>> sets = new LinkedList<>();
 
+	@Override
 	public void makeSet(T element){
 		LinkedList newSet = new LinkedList<>();
 		newSet.add(element);
 		sets.add(newSet);
 	}
 	
+	@Override
 	public void union(T first, T second){
 		int index1 = -1;
 		int index2 = -1;
@@ -43,6 +45,7 @@ public class UnionFindList<T> {
 		sets.remove(index2);
 	}
 	
+	@Override
 	public T find(T element){
 		for(LinkedList<T> set: sets){
 			if(set.contains(element)){

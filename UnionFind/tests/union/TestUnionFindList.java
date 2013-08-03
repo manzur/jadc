@@ -25,7 +25,7 @@ public class TestUnionFindList {
 		
 		System.out.println(unionFind.toString());
 		
-//		System.out.println("element: " + unionFind.find(1));
+		System.out.println("element: " + unionFind.find(1));
 		System.out.println("element: " + unionFind.find(2));
 		System.out.println("element: " + unionFind.find(3));
 		
