@@ -4,11 +4,11 @@ import java.util.LinkedList;
 
 public class UnionFindList<T> implements IUnionFind<T> {
 	
-	private LinkedList<LinkedList<T>> sets = new LinkedList<>();
+	private final LinkedList<LinkedList<T>> sets = new LinkedList<>();
 
 	@Override
 	public void makeSet(T element){
-		LinkedList newSet = new LinkedList<>();
+		final LinkedList newSet = new LinkedList<>();
 		newSet.add(element);
 		sets.add(newSet);
 	}
@@ -17,6 +17,7 @@ public class UnionFindList<T> implements IUnionFind<T> {
 	public void union(T first, T second){
 		int index1 = -1;
 		int index2 = -1;
+		
 		for(int i = 0; i < sets.size(); i++){
 			if(index1 != -1 && index2 != -1) break;
 			for(T t : sets.get(i)){
@@ -57,7 +58,7 @@ public class UnionFindList<T> implements IUnionFind<T> {
 	}
 	
 	public String toString(){
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		
 		for(int i = 1; i <= sets.size(); i++){
 			builder.append("Set #" + i + "\n");
