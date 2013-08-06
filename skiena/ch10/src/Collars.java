@@ -13,6 +13,21 @@ public class Collars {
 			this.x = x;
 			this.y = y;
 		}
+		
+		@Override
+		public int hashCode() {
+			return x << 16 + y;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof Pair){
+				Pair other = (Pair) obj;
+				return x == other.x && y == other.y;
+			}
+			
+			return false;
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -31,41 +46,65 @@ public class Collars {
 
 			int N = sc.nextInt();
 			Pair[] collars = new Pair[N + 1];
-			for(int i = 0; i < N; i++){
+			for(int i = 1; i <= N; i++){
 				int color1 = sc.nextInt();
 				int color2 = sc.nextInt();
 				
 				Pair pair = new Pair(color1, color2);
 				collars[i] = pair;
+
+				verticesByColor[color1].add(i);
+				verticesByColor[color2].add(-i);
 			}
 			
-			LinkedList[] solutions = new LinkedList[N * 2 + 1];
+			LinkedList<LinkedList<Integer>> solutions = new LinkedList<LinkedList<Integer>>();
 			for(int i = 1; i <= N; i++){
-				solutions[toIndex(i, N)] = new LinkedList<Integer>();
-				solutions[toIndex(i, N)].add(i);
+				LinkedList<Integer> list1 = new LinkedList<Integer>();
+				LinkedList<Integer> list2 = new LinkedList<Integer>();
 				
-				solutions[toIndex(-i, N)] = new LinkedList<Integer>();
-				solutions[toIndex(-i, N)].add(-i);
+				list1.add(i);
+				list2.add(-i);
+				
+				solutions.add(list1);
+				solutions.add(list2);
 			}
 			
 			for(int k = 2; k <= N; k++){
 				for(int i = 1; i <= N; i++){
-					// for -i
-					LinkedList<Pair> negList = solutions[toIndex(-i, N)];
-					Pair pair = negList.getLast();
-					int color = pair.y;
-					Set<Integer> compatibleColors = verticesByColor[color];
-					for(Integer c : compatibleColors){
-						
-					}
+					LinkedList<LinkedList<Integer>> newSolutions = new LinkedList<LinkedList<Integer>>();
 					
-					// for i
-					LinkedList posList = solutions[toIndex(-i, N)];
+					for(LinkedList<Integer> list : solutions){
+						Integer last = list.getLast();
+						Pair lastPair = getElem(collars, last);
+						int color1 = lastPair.y;
+						
+						if(verticesByColor[color1].contains(i)){
+							LinkedList<Integer> newList = (LinkedList<Integer>) list.clone();
+							newList.add(i);
+							newSolutions.add(newList);
+						}
+						
+						if(verticesByColor[color1].contains(-i)){
+							LinkedList<Integer> newList = (LinkedList<Integer>) list.clone();
+							newList.add(i);
+							newSolutions.add(newList);
+						}
+					}
 				}
 			}
 
 		}
 		sc.close();
+	}
+
+	private static Pair getElem(Pair[] collars, Integer last) {
+		if(last < 0){
+			Pair old = collars[-last];
+			Pair result = new Pair(old.x, old.y);
+			return result;
+		}
+		
+		return collars[last];
 	}
 
 	private static int toIndex(int i, int n) {
