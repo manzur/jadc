@@ -33,7 +33,7 @@ public class Depo {
 			int[][] adj = new int[n + 1][n + 1];
 			for (int i = 0; i <= n; i++) {
 				for (int j = 0; j <= n; j++) {
-					adj[i][j] = Integer.MAX_VALUE / 10;
+					adj[i][j] = Integer.MAX_VALUE;
 				}
 			}
 
@@ -46,33 +46,91 @@ public class Depo {
 				adj[source][dest] = adj[dest][source] = dist;
 			}
 
-			int[] depoDist = new int[n + 1];
+			
+			/* 1. preparation */
+			int[] depoDist = null;
+			for(Integer depo : depos){
+				int[] distance = findShortestDistance(depo, adj);
 
-			int minDepo = -1;
-			int min = Integer.MAX_VALUE;
-
-			for (int i = 1; i <= n; i++) {
-				depoInit(n, depos, depoDist);
-
-				if (!depos.contains(i)) {
-					depos.add(i);
-
-					int result = calcDistance(n, depos, adj, depoDist);
-					System.out.println("Depo " + i + " dist: " + result);
-					if (result < min) {
-						min = result;
-						minDepo = i;
-					}
-
-					depos.remove(i);
+				if(depoDist == null){
+					depoDist = distance;
+				
+				} else{
+					merge(depoDist, distance);
 				}
 			}
+			
+			
+			int minDepo = -1;
+			int min = calcSum(depoDist);
 
+			/* 2. try to setup new station */
+			for(int i = 1; i <= n; i++){
+				if(!depos.contains(i)){
+					int[] restDistance = findShortestDistance(i, adj);
+					merge(restDistance, depoDist);
+					int sum = calcSum(restDistance);
+
+//					System.out.println("at " + i + " sum is " + sum);
+					/* 3. compare with existing solution */
+					if(sum < min){
+						min = sum;
+						minDepo = i;
+					}
+				}
+			}
+			
 			System.out.println(minDepo);
 			System.out.println();
 		}
 
 		reader.close();
+	}
+
+	private static int[] findShortestDistance(int depo, int[][] adj) {
+		int[] result = new int[adj.length];
+		
+		Arrays.fill(result, Integer.MAX_VALUE);
+		result[depo] = 0;
+		
+		boolean[] inTree = new boolean[adj.length];
+		int v = depo;
+		
+		while(!inTree[v]){
+			inTree[v] = true;
+			for(int i = 1; i < adj.length; i++){
+				if(!inTree[i] && adj[v][i] != Integer.MAX_VALUE && adj[v][i] + result[v] < result[i]){
+					result[i] = adj[v][i] + result[v];
+				}
+			}
+			
+			int min = Integer.MAX_VALUE;
+			for(int i = 1; i < result.length; i++){
+				if(!inTree[i] && min > result[i]){
+					v = i;
+					min = result[i];
+				}
+			}
+		}
+		
+		return result;
+	}
+
+	private static int calcSum(int[] depoDist) {
+		int result = 0;
+		
+		for(int i = 1; i < depoDist.length; i++){
+			result += depoDist[i];
+		}
+		
+		return result;
+	}
+
+	private static void merge(int[] depoDist, int[] distance) {
+		for(int i = 0; i < depoDist.length; i++){
+			int min = Math.min(depoDist[i], distance[i]);
+			depoDist[i] = min;
+		}
 	}
 
 	private static void depoInit(int n, Set<Integer> depos, int[] depoDist) {
