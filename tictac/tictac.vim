@@ -16,6 +16,11 @@ let s:DRAW     = 3
 
 let s:hStep = 4
 let s:vStep = 3
+let s:linePos = 0
+let s:colPos = 0
+let s:finished = 0
+let s:previousXCount = 0
+
 
 set updatetime=500
 
@@ -606,5 +611,4 @@ function! s:CheckBoard()
 endfunction
 
 autocmd cursorhold * call s:CheckBoard()
-
 call NewBoard()
